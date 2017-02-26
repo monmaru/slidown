@@ -38,12 +38,12 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 
 	if slide.Download {
 		resp, err := download(ctx, slide.DownloadURL)
-		defer resp.Body.Close()
 		if err != nil {
 			log.Errorf(ctx, "download error: %#v", err)
 			writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer resp.Body.Close()
 
 		fileName := id + "." + slide.Format
 		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
@@ -80,15 +80,16 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	}
 
 	resp, err := download(ctx, info.DownloadURL)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Errorf(ctx, "download error: %#v", err)
 		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer resp.Body.Close()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+info.FileName)
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+	w.Header().Set("X-FileName", info.FileName)
 	io.Copy(w, resp.Body)
 }
 

@@ -57,12 +57,14 @@ func (s *SlideShareSvc) GetSlideShareInfo(id string, optArgs ...map[string]strin
 	args := map[string]string{
 		"slideshow_id": id,
 	}
+
 	if len(optArgs) > 0 {
 		for k, v := range optArgs[0] {
 			args[k] = v
 		}
 	}
 	endpoint := s.buildEndpoint("get_slideshow", args)
+
 	resp, err := s.httpClient.Get(endpoint)
 	if err != nil {
 		return nil, err
@@ -70,7 +72,7 @@ func (s *SlideShareSvc) GetSlideShareInfo(id string, optArgs ...map[string]strin
 	defer resp.Body.Close()
 
 	ss := &SlideShareInfo{}
-	err = parse(resp, ss)
+	err = parseXML(resp, ss)
 	return ss, err
 }
 
@@ -88,7 +90,7 @@ func (s *SlideShareSvc) buildEndpoint(method string, args map[string]string) str
 	return baseURL + "/" + method + "?" + values.Encode()
 }
 
-func parse(resp *http.Response, container interface{}) error {
+func parseXML(resp *http.Response, container interface{}) error {
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -106,7 +108,6 @@ func NewSpeakerDeckSvc(client *http.Client) *SpeakerDeckSvc {
 
 func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error) {
 	resp, err := s.httpClient.Get(url)
-
 	if err != nil {
 		return nil, err
 	}
