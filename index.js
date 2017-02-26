@@ -16,30 +16,33 @@ function onDownloadClicked() {
 function download(url) {
   var $loading = $('#loading');
   $loading.show();
-
-  $.ajax({
-    type: 'POST',
-    url: '/api/slideshare/download', // TODO
-    dataType: 'json',
-    data: JSON.stringify({'url': url}),
-  }).always(function() {
-    $loading.hide();
-  }).done(function(data, textStatus, jqXHR) {
-    var fileName = jqXHR.getResponseHeader('X-FileName');
-    console.log(fileName);
-    var blob = new Blob([data], {type: "application/octet-stream"});
-    
-    if (window.navigator.msSaveBlob) {
-      window.navigator.msSaveBlob(blob, fileName); // IE用
-    } else {
-      var downloadUrl  = (window.URL || window.webkitURL).createObjectURL(blob);
-      var link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      link.click();
-      (window.URL || window.webkitURL).revokeObjectURL(downloadUrl);
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", '/api/slideshare/download', true);
+  xhr.responseType = "blob";
+  xhr.onload = function (oEvent) {
+    try {
+      if (this.status == 200) {
+        var blob = xhr.response;
+        var fileName = xhr.getResponseHeader("X-FileName")
+        if (window.navigator.msSaveBlob) {
+          window.navigator.msSaveBlob(blob, fileName);
+        }
+        else {
+          var objectURL = window.URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          document.body.appendChild(link);
+          link.href = objectURL;
+          link.download = fileName;
+          link.click();
+          document.body.removeChild(link);
+        }
+      } else {
+        alert('ERRORS!!!');
+      }
+    } finally {
+      $loading.hide();
     }
-  }).fail(function(jqXHR, textStatus, errorThrown) {
-    alert('ERRORS: ' + textStatus + ' ' + errorThrown);
-  });
+  };
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify({'url': url}));
 }
