@@ -6,19 +6,26 @@ $(function() {
 
 function onDownloadClicked() {
   var url = $('#url').val();
-  if (!url || url === '') {
-    Materialize.toast('スライドのURLを入力してください！！', 3000);
-  } else {
-    download(url);
+  switch (true) {
+  case /(http|https):\/\/www\.slideshare\.net\/.+/.test(url):
+    download(url, '/api/slideshare/download')
+    break;
+  case /(http|https):\/\/speakerdeck\.com\/.+/.test(url):
+    download(url, '/api/speakerdeck/download')
+    break;
+  default:
+    Materialize.toast('SlideShareかSpeakerDeckのURLを入力してください！！', 3000);
+    break
   }
 }
 
-function download(url) {
+function download(url, api) {
   var $loading = $('#loading');
-  $loading.show();
   var xhr = new XMLHttpRequest();
-  xhr.open("POST", '/api/slideshare/download', true);
+  $loading.show();
+  xhr.open("POST", api, true);
   xhr.responseType = "blob";
+  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onload = function (oEvent) {
     try {
       if (this.status == 200) {
@@ -43,6 +50,5 @@ function download(url) {
       $loading.hide();
     }
   };
-  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.send(JSON.stringify({'url': url}));
 }

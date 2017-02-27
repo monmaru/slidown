@@ -3,7 +3,6 @@ package slidown
 import (
 	"crypto/sha1"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -32,30 +31,9 @@ func NewSlideShareSvc(apiKey, sharedSecret string, client *http.Client) *SlideSh
 	}
 }
 
-func (s *SlideShareSvc) GetSlideID(url string) (string, error) {
-	resp, err := s.httpClient.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	doc, err := goquery.NewDocumentFromResponse(resp)
-	if err != nil {
-		return "", err
-	}
-	content := doc.Find("div.tabs-content")
-	lyndaItem := content.Find("li.lynda-item")
-	id, ok := lyndaItem.Find("a").Attr("data-ssid")
-	if !ok {
-		return "", errors.New("スライドが見つかりませんでした。")
-	}
-
-	return id, nil
-}
-
-func (s *SlideShareSvc) GetSlideShareInfo(id string, optArgs ...map[string]string) (*SlideShareInfo, error) {
+func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]string) (*SlideShareInfo, error) {
 	args := map[string]string{
-		"slideshow_id": id,
+		"slideshow_url": url,
 	}
 
 	if len(optArgs) > 0 {

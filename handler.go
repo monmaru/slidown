@@ -2,6 +2,7 @@ package slidown
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -22,14 +23,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 
 	svc := createSvc(ctx)
 
-	id, err := svc.GetSlideID(data.URL)
-	if err != nil {
-		log.Errorf(ctx, "GetSlideID error: %#v", err)
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	slide, err := svc.GetSlideShareInfo(id)
+	slide, err := svc.GetSlideShareInfo(data.URL)
 	if err != nil {
 		log.Errorf(ctx, "GetSlideShareInfo error: %#v", err)
 		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
@@ -45,7 +39,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 		}
 		defer resp.Body.Close()
 
-		fileName := id + "." + slide.Format
+		fileName := fmt.Sprint(slide.ID) + "." + slide.Format
 		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 		w.Header().Set("X-FileName", fileName)
