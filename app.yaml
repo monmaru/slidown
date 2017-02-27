@@ -12,6 +12,10 @@ handlers:
   static_files: index.js
   upload: index.js
 
+- url: /css/index.css
+  static_files: index.css
+  upload: index.css
+
 - url: /favicon.ico
   static_files: favicon.ico
   upload: favicon.ico

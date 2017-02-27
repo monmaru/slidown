@@ -2,10 +2,11 @@
 <head>
   <title>slidown</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/github.min.css">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/github.min.css" />
   <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-  <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+  <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css" />
+  <link type="text/css" rel="stylesheet" href="css/index.css" />
   <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
   <script type="text/javascript" src="js/index.js" charset="utf-8"></script>
@@ -13,17 +14,27 @@
 <body>
   <div class="container">
     <div class="valign-wrapper">
-      <h3 class="valign">Slide Downloader</h3>
+      <h1 class="valign">Slide Downloader</h1>
     </div>
+    <p class="flow-text">Enter url and click download-button to download.</p>
     <div class="input-field col s12">
       <input id="url" type="text" class="validate">
-      <label for="url">Slide URL</label>
+      <label for="url">URL</label>
     </div>
     <button id="download" class="btn waves-effect waves-light" type="submit" name="action">Download
-      <i class="material-icons right">send</i>
+      <i class="material-icons right">file_download</i>
     </button>
-    <div class="progress" id="loading" style="display:none;">
-      <div class="indeterminate"></div>
+  </div>
+
+  <div class="preloader-wrapper big active loader" id="loading">
+    <div class="spinner-layer spinner-green-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
     </div>
   </div>
 </body>
