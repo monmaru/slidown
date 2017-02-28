@@ -8,10 +8,10 @@ function onDownloadClicked() {
   var url = $('#url').val();
   switch (true) {
   case /(http|https):\/\/www\.slideshare\.net\/.+/.test(url):
-    download(url, '/api/slideshare/download')
+    download(url, '/api/slideshare/download');
     break;
   case /(http|https):\/\/speakerdeck\.com\/.+/.test(url):
-    download(url, '/api/speakerdeck/download')
+    download(url, '/api/speakerdeck/download');
     break;
   default:
     Materialize.toast('SlideShareかSpeakerDeckのURLを入力してください！！', 5000);
@@ -31,9 +31,9 @@ function download(url, api) {
 }
 
 function updateProgress(evt) {
-  if(evt.lengthComputable) {
-    var percentComplete = evt.loaded / evt.total * 100;
-    $('.determinate').css('width', percentComplete + '%');
+  if (evt.lengthComputable) {
+    var percentage = evt.loaded / evt.total * 100;
+    $('.determinate').css('width', percentage + '%');
   }
 }
 
@@ -45,9 +45,9 @@ function onReadyStateChanged() {
     break;
   case 4:
     $('.downloading').hide();
-    if(this.status === 200) {
+    if (this.status === 200) {
       var blob = this.response;
-      var fileName = this.getResponseHeader("X-FileName")
+      var fileName = this.getResponseHeader("X-FileName");
       if (window.navigator.msSaveBlob) {
         window.navigator.msSaveBlob(blob, fileName);
       }
