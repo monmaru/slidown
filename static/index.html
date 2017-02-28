@@ -12,30 +12,34 @@
   <script type="text/javascript" src="/script.js" charset="utf-8"></script>
 </head>
 <body>
-  <div class="container">
-    <div class="valign-wrapper">
-      <h1 class="valign">Slide Downloader</h1>
-    </div>
-    <p class="flow-text">Enter url and click download-button to download.</p>
-    <div class="input-field col s12">
-      <input id="url" type="text" class="validate">
-      <label for="url">URL</label>
-    </div>
-    <button id="download" class="btn waves-effect waves-light" type="submit" name="action">Download
-      <i class="material-icons right">file_download</i>
-    </button>
+<div class="container">
+  <div class="valign-wrapper">
+    <h1 class="valign">Slide Downloader</h1>
   </div>
-
-  <div class="preloader-wrapper big active loader" id="loading">
-    <div class="spinner-layer spinner-green-only">
-      <div class="circle-clipper left">
-        <div class="circle"></div>
-      </div><div class="gap-patch">
-        <div class="circle"></div>
-      </div><div class="circle-clipper right">
-        <div class="circle"></div>
-      </div>
+  <p class="flow-text">Enter url and click download-button to download.</p>
+  <div class="input-field col s12">
+    <input id="url" type="text" class="slide-url">
+    <label for="url">URL</label>
+  </div>
+  <button id="download" class="btn waves-effect waves-light" type="submit" name="action">Download
+    <i class="material-icons right">file_download</i>
+  </button>
+  <div class="searching" >
+    <p>
+      <I>Searching...</I>
+    </p>
+    <div class="progress">
+      <div class="indeterminate"></div>
     </div>
   </div>
+  <div class="downloading" >
+    <p>
+      <I>Downloading...</I>
+    </p>
+    <div class="progress">
+      <div class="determinate"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
