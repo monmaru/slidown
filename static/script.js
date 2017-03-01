@@ -20,12 +20,13 @@ function onDownloadClicked() {
 }
 
 function download(url, api) {
+  $('.message-area').hide();
   $('.searching').show();
   var xhr = new XMLHttpRequest();
-  xhr.open("POST", api, true);
-  xhr.responseType = "blob";
-  xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.addEventListener("progress", updateProgress, false);
+  xhr.open('POST', api, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.addEventListener('progress', updateProgress, false);
   xhr.onreadystatechange = onReadyStateChanged;
   xhr.send(JSON.stringify({'url': url}));
 }
@@ -45,24 +46,55 @@ function onReadyStateChanged() {
     break;
   case 4:
     $('.downloading').hide();
+    var ab = this.response;
     if (this.status === 200) {
-      var blob = this.response;
-      var fileName = this.getResponseHeader("X-FileName");
-      if (window.navigator.msSaveBlob) {
-        window.navigator.msSaveBlob(blob, fileName);
-      }
-      else {
-        var objectURL = window.URL.createObjectURL(blob);
-        var link = document.createElement("a");
-        document.body.appendChild(link);
-        link.href = objectURL;
-        link.download = fileName;
-        link.click();
-        document.body.removeChild(link);
-      }
+      onDownloadSuccess(ab, this.getResponseHeader('X-FileName'));
     } else {
-      alert('ERRORS!!!');
+      onDownloadError(ab);
     }
     break;
   }
+}
+
+function onDownloadSuccess(ab, fileName) {
+  var blob = new Blob([ab], {type: 'application/octet-binary'});
+  if (window.navigator.msSaveBlob) {
+    window.navigator.msSaveBlob(blob, fileName);
+  } else {
+    var objectURL = window.URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    document.body.appendChild(link);
+    link.href = objectURL;
+    link.download = fileName;
+    link.click();
+    document.body.removeChild(link);
+  }
+  showMessage('Download completed');
+}
+
+function onDownloadError(ab) {
+  if (window.TextDecoder) {
+    showMessage(JSON.parse(ab2str(ab)).message);
+  } else {
+    ab2strForIE(ab, function (str) {
+      showMessage(JSON.parse(str).message);
+    });
+  }
+}
+
+function showMessage(msg) {
+  $('#message').text(msg);
+  $('.message-area').show();
+}
+
+function ab2str(buf) {
+  var decoder = new TextDecoder('utf-8');
+  return decoder.decode(new Uint8Array(buf));
+}
+
+function ab2strForIE(buf, callback ) {
+  var blob = new Blob([buf],{type:'text/plain'});
+  var reader = new FileReader();
+  reader.onload = function(evt){callback(evt.target.result);};
+  reader.readAsText(blob, 'utf-8');
 }

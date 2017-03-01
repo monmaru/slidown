@@ -17,7 +17,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 	data, err := json2ReqData(r.Body)
 	if err != nil {
 		log.Errorf(ctx, "Error json2Data : %v", err)
-		writeErrorResponse(w, err.Error(), http.StatusBadRequest)
+		writeErrorResponse(w, "Invalid request format!!", http.StatusBadRequest)
 		return
 	}
 
@@ -26,7 +26,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 	slide, err := svc.GetSlideShareInfo(data.URL)
 	if err != nil {
 		log.Errorf(ctx, "GetSlideShareInfo error: %#v", err)
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
 
@@ -34,7 +34,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 		resp, err := download(ctx, slide.DownloadURL)
 		if err != nil {
 			log.Errorf(ctx, "download error: %#v", err)
-			writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
+			writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 			return
 		}
 		defer resp.Body.Close()
@@ -46,7 +46,9 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 		io.Copy(w, resp.Body)
 	} else {
 		// TODO: ダウンロード不可のスライドの場合は、画像ファイルをもとにPDFを作成して返す。
-		writeErrorResponse(w, "このスライドはダウンロード禁止です。", http.StatusBadRequest)
+		msg := "指定されたスライドはダウンロード禁止です。"
+		log.Debugf(ctx, msg)
+		writeErrorResponse(w, msg, http.StatusBadRequest)
 	}
 }
 
@@ -61,7 +63,7 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	data, err := json2ReqData(r.Body)
 	if err != nil {
 		log.Errorf(ctx, "Error json2Data : %v", err)
-		writeErrorResponse(w, "Invalid json format", http.StatusBadRequest)
+		writeErrorResponse(w, "Invalid request format!!", http.StatusBadRequest)
 		return
 	}
 
@@ -69,14 +71,14 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	info, err := service.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
 		log.Errorf(ctx, "GetSpeakerDeckInfo error: %#v", err)
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusInternalServerError)
 		return
 	}
 
 	resp, err := download(ctx, info.DownloadURL)
 	if err != nil {
 		log.Errorf(ctx, "download error: %#v", err)
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		writeErrorResponse(w,"ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()

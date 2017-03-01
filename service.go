@@ -8,11 +8,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 )
 
 const baseURL = "https://www.slideshare.net/api/2"
@@ -51,6 +51,12 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 
 	ss := &SlideShareInfo{}
 	err = parseXML(resp, ss)
+
+	// compare with zero value.
+	if ss.ID == 0 && ss.Title == "" {
+		return nil, errors.New("指定されたURLからはスライドが見つかりませんでした。")
+	}
+
 	return ss, err
 }
 
@@ -97,20 +103,14 @@ func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error
 	}
 
 	details := doc.Find("#talk-details")
-	sidebar := doc.Find(".sidebar")
 	downloadURL := doc.Find("#share_pdf").AttrOr("href", "")
 	strings.Split(downloadURL, "/")
-	stars, err := strconv.Atoi(strings.Split(sidebar.Find(".stargazers").Text(), " ")[0])
-	if err != nil {
-		return nil, err
-	}
 
 	return &SpeakerDeckInfo{
 		Title:       details.Find("h1").Text(),
 		Description: strings.TrimSpace(details.Find(".description").Text()),
 		DownloadURL: downloadURL,
 		FileName:    extractFileName(downloadURL),
-		Stars:       stars,
 	}, nil
 }
 

@@ -23,7 +23,6 @@ type SlideShareInfo struct {
 
 type SpeakerDeckInfo struct {
 	Title, Description, DownloadURL, FileName string
-	Stars                                     int
 }
 
 type ReqData struct {

@@ -5,3 +5,7 @@
 .downloading {
     display: none;
 }
+
+.message-area {
+    display: none;
+}
