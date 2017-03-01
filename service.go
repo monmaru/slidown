@@ -106,6 +106,11 @@ func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error
 	downloadURL := doc.Find("#share_pdf").AttrOr("href", "")
 	strings.Split(downloadURL, "/")
 
+	// compare with zero value.
+	if downloadURL == "" {
+		return nil, errors.New("指定されたURLからはスライドが見つかりませんでした。")
+	}
+
 	return &SpeakerDeckInfo{
 		Title:       details.Find("h1").Text(),
 		Description: strings.TrimSpace(details.Find(".description").Text()),
