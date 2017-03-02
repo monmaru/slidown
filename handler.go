@@ -102,8 +102,8 @@ func json2ReqData(rc io.ReadCloser) (*ReqData, error) {
 }
 
 func download(ctx context.Context, url string) (resp *http.Response, err error) {
-	ctxWithDeadline, _ := context.WithTimeout(ctx, 60*time.Second)
-	return GetHTTPClient(ctxWithDeadline).Get(url)
+	ctxWithTimeout, _ := context.WithTimeout(ctx, 60*time.Second)
+	return GetHTTPClient(ctxWithTimeout).Get(url)
 }
 
 func writeErrorResponse(w http.ResponseWriter, message string, statusCode int) {

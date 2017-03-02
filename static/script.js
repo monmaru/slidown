@@ -100,7 +100,7 @@ function bytes2str(bytes) {
   var baseSize = 1024;
   if (bytes < baseSize) {
     return bytes + ' bytes';
-  } else if (bytes <= Math.pow(baseSize, 2)) {
+  } else if (bytes < Math.pow(baseSize, 2)) {
     return (bytes / baseSize).toFixed(2) + ' KB';
   } else {
     return (bytes / Math.pow(baseSize, 2)).toFixed(2) + ' MB';
