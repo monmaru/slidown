@@ -74,11 +74,20 @@ function onDownloadSuccess(ab, fileName) {
 
 function onDownloadError(ab) {
   if (window.TextDecoder) {
-    showMessage(JSON.parse(ab2str(ab)).message);
+    showMessage(buildErrorMsg(ab2str(ab)));
   } else {
     ab2strForIE(ab, function(str) {
-      showMessage(JSON.parse(str).message);
+      showMessage(buildErrorMsg(str));
     });
+  }
+}
+
+function buildErrorMsg(str) {
+  try {
+    return JSON.parse(str).message;
+  } catch(e) {
+    // network error etc...
+    return '予期せぬエラーが発生しました。';
   }
 }
 
