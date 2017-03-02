@@ -41,6 +41,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 		fileName := fmt.Sprint(slide.ID) + "." + slide.Format
 		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+		w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
 		w.Header().Set("X-FileName", fileName)
 		io.Copy(w, resp.Body)
 	} else {
@@ -55,7 +56,7 @@ func createSlideShareSvc(ctx context.Context) *SlideShareSvc {
 	return NewSlideShareSvc(
 		os.Getenv("APIKEY"),
 		os.Getenv("SHAREDSECRET"),
-		getDefaultHTTPClient(ctx))
+		GetHTTPClient(ctx))
 }
 
 func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -66,8 +67,8 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	service := NewSpeakerDeckSvc(getDefaultHTTPClient(ctx))
-	info, err := service.GetSpeakerDeckInfo(data.URL)
+	svc := NewSpeakerDeckSvc(GetHTTPClient(ctx))
+	info, err := svc.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
 		log.Debugf(ctx, "GetSpeakerDeckInfo error: %#v", err)
 		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
@@ -77,18 +78,19 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	resp, err := download(ctx, info.DownloadURL)
 	if err != nil {
 		log.Errorf(ctx, "download error: %#v", err)
-		writeErrorResponse(w,"ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+		writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+info.FileName)
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+	w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
 	w.Header().Set("X-FileName", info.FileName)
 	io.Copy(w, resp.Body)
 }
 
-func getDefaultHTTPClient(ctx context.Context) *http.Client {
+var GetHTTPClient func(ctx context.Context) *http.Client = func(ctx context.Context) *http.Client {
 	return urlfetch.Client(ctx)
 }
 
@@ -101,7 +103,7 @@ func json2ReqData(rc io.ReadCloser) (*ReqData, error) {
 
 func download(ctx context.Context, url string) (resp *http.Response, err error) {
 	ctxWithDeadline, _ := context.WithTimeout(ctx, 60*time.Second)
-	return urlfetch.Client(ctxWithDeadline).Get(url)
+	return GetHTTPClient(ctxWithDeadline).Get(url)
 }
 
 func writeErrorResponse(w http.ResponseWriter, message string, statusCode int) {

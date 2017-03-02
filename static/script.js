@@ -42,6 +42,7 @@ function onReadyStateChanged() {
   switch (this.readyState) {
   case 2: // received response header.
     $('.searching').hide();
+    $('#downloading-message').text('Downloading ' + bytes2str(this.getResponseHeader('Content-Length')) + '...');
     $('.downloading').show();
     break;
   case 4:
@@ -82,8 +83,19 @@ function onDownloadError(ab) {
 }
 
 function showMessage(msg) {
-  $('#message').text(msg);
+  $('#result-message').text(msg);
   $('.message-area').show();
+}
+
+function bytes2str(bytes) {
+  var baseSize = 1024;
+  if (bytes < baseSize) {
+    return bytes + ' bytes';
+  } else if (bytes <= Math.pow(baseSize, 2)) {
+    return (bytes / baseSize).toFixed(2) + ' KB';
+  } else {
+    return (bytes / Math.pow(baseSize, 2)).toFixed(2) + ' MB';
+  }
 }
 
 function ab2str(buf) {
