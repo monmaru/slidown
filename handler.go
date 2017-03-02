@@ -16,16 +16,15 @@ import (
 func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	data, err := json2ReqData(r.Body)
 	if err != nil {
-		log.Errorf(ctx, "Error json2Data : %v", err)
+		log.Debugf(ctx, "Error json2Data : %v", err)
 		writeErrorResponse(w, "Invalid request format!!", http.StatusBadRequest)
 		return
 	}
 
-	svc := createSvc(ctx)
-
+	svc := createSlideShareSvc(ctx)
 	slide, err := svc.GetSlideShareInfo(data.URL)
 	if err != nil {
-		log.Errorf(ctx, "GetSlideShareInfo error: %#v", err)
+		log.Debugf(ctx, "GetSlideShareInfo error: %#v", err)
 		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
@@ -52,7 +51,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 }
 
-func createSvc(ctx context.Context) *SlideShareSvc {
+func createSlideShareSvc(ctx context.Context) *SlideShareSvc {
 	return NewSlideShareSvc(
 		os.Getenv("APIKEY"),
 		os.Getenv("SHAREDSECRET"),
@@ -62,7 +61,7 @@ func createSvc(ctx context.Context) *SlideShareSvc {
 func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	data, err := json2ReqData(r.Body)
 	if err != nil {
-		log.Errorf(ctx, "Error json2Data : %v", err)
+		log.Debugf(ctx, "Error json2Data : %v", err)
 		writeErrorResponse(w, "Invalid request format!!", http.StatusBadRequest)
 		return
 	}
@@ -70,7 +69,7 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	service := NewSpeakerDeckSvc(getDefaultHTTPClient(ctx))
 	info, err := service.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
-		log.Errorf(ctx, "GetSpeakerDeckInfo error: %#v", err)
+		log.Debugf(ctx, "GetSpeakerDeckInfo error: %#v", err)
 		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusInternalServerError)
 		return
 	}

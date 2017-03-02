@@ -15,7 +15,7 @@ function onDownloadClicked() {
     break;
   default:
     Materialize.toast('SlideShareかSpeakerDeckのURLを入力してください！！', 5000);
-    break
+    break;
   }
 }
 
@@ -46,11 +46,10 @@ function onReadyStateChanged() {
     break;
   case 4:
     $('.downloading').hide();
-    var ab = this.response;
     if (this.status === 200) {
-      onDownloadSuccess(ab, this.getResponseHeader('X-FileName'));
+      onDownloadSuccess(this.response, this.getResponseHeader('X-FileName'));
     } else {
-      onDownloadError(ab);
+      onDownloadError(this.response);
     }
     break;
   }
@@ -76,7 +75,7 @@ function onDownloadError(ab) {
   if (window.TextDecoder) {
     showMessage(JSON.parse(ab2str(ab)).message);
   } else {
-    ab2strForIE(ab, function (str) {
+    ab2strForIE(ab, function(str) {
       showMessage(JSON.parse(str).message);
     });
   }
@@ -92,8 +91,8 @@ function ab2str(buf) {
   return decoder.decode(new Uint8Array(buf));
 }
 
-function ab2strForIE(buf, callback ) {
-  var blob = new Blob([buf],{type:'text/plain'});
+function ab2strForIE(buf, callback) {
+  var blob = new Blob([buf], {type:'text/plain'});
   var reader = new FileReader();
   reader.onload = function(evt){callback(evt.target.result);};
   reader.readAsText(blob, 'utf-8');

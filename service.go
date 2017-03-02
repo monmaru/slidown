@@ -15,12 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-const baseURL = "https://www.slideshare.net/api/2"
-
 type SlideShareSvc struct {
-	APIKey       string
-	SharedSecret string
-	httpClient   *http.Client
+	APIKey, SharedSecret string
+	httpClient           *http.Client
 }
 
 func NewSlideShareSvc(apiKey, sharedSecret string, client *http.Client) *SlideShareSvc {
@@ -41,8 +38,8 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 			args[k] = v
 		}
 	}
-	endpoint := s.buildEndpoint("get_slideshow", args)
 
+	endpoint := s.buildEndpoint("get_slideshow", args)
 	resp, err := s.httpClient.Get(endpoint)
 	if err != nil {
 		return nil, err
@@ -71,15 +68,16 @@ func (s *SlideShareSvc) buildEndpoint(method string, args map[string]string) str
 	hash := sha1.New()
 	io.WriteString(hash, s.SharedSecret+timestamp)
 	values.Set("hash", fmt.Sprintf("%x", hash.Sum(nil)))
+	baseURL := "https://www.slideshare.net/api/2"
 	return baseURL + "/" + method + "?" + values.Encode()
 }
 
 func parseXML(resp *http.Response, container interface{}) error {
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	return xml.Unmarshal([]byte(responseBody), container)
+	return xml.Unmarshal([]byte(bytes), container)
 }
 
 type SpeakerDeckSvc struct {
