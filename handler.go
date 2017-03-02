@@ -70,7 +70,7 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, r *http
 	info, err := service.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
 		log.Debugf(ctx, "GetSpeakerDeckInfo error: %#v", err)
-		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusInternalServerError)
+		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
 
