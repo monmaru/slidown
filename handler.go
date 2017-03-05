@@ -76,37 +76,37 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 	}
 
 	usePDFCreator, _ := strconv.ParseBool(os.Getenv("USEPDFCREATOR"))
-	if usePDFCreator {
-		links, err := svc.GetSlideImageLinks(data.URL)
-		if err != nil {
-			log.Errorf(ctx, "GetSlideImageLinks error: %#v", err)
-			writeError(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
-			return
-		}
-
-		pdf := gofpdf.New("L", "mm", "A4", "")
-		defer pdf.Close()
-		for _, link := range links {
-			resp, err := httpClient.Get(link)
-			if err != nil {
-				pdf.SetError(err)
-				log.Errorf(ctx, "Error HTTP Get %s : %v", link, err)
-				writeError(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
-				return
-			}
-			addPage2PDF(pdf, link, resp)
-		}
-
-		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Header().Set("X-FileName", fileName)
-		if err := pdf.Output(w); err != nil {
-			log.Errorf(ctx, "PDF作成中にエラーが発生しました。 %#v", err)
-		}
-	} else {
+	if !usePDFCreator {
 		msg := "指定されたスライドはダウンロードが禁止されています。"
 		log.Infof(ctx, msg)
 		writeError(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	links, err := svc.GetSlideImageLinks(data.URL)
+	if err != nil {
+		log.Errorf(ctx, "GetSlideImageLinks error: %#v", err)
+		writeError(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+		return
+	}
+
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	defer pdf.Close()
+	for _, link := range links {
+		resp, err := httpClient.Get(link)
+		if err != nil {
+			log.Errorf(ctx, "Error HTTP Get %s : %v", link, err)
+			writeError(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+			return
+		}
+		addPage2PDF(pdf, link, resp)
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("X-FileName", fileName)
+	if err := pdf.Output(w); err != nil {
+		log.Errorf(ctx, "PDF作成中にエラーが発生しました。 %#v", err)
 	}
 }
 
