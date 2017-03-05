@@ -57,6 +57,31 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 	return ss, err
 }
 
+func (s *SlideShareSvc) GetSlideImageLinks(url string) ([]string, error) {
+	resp, err := s.httpClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	links := []string{}
+	doc.Find("div.slide_container > section > img.slide_image").Each(func(i int, s *goquery.Selection) {
+		link := s.AttrOr("data-normal", "")
+		links = append(links, strings.Split(link, "?")[0])
+	})
+
+	if len(links) == 0 {
+		return nil, errors.New("指定されたURLからはスライドが見つかりませんでした。")
+	}
+
+	return links, nil
+}
+
 func (s *SlideShareSvc) buildEndpoint(method string, args map[string]string) string {
 	values := url.Values{}
 	for k, v := range args {
