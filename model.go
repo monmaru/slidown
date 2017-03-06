@@ -21,6 +21,10 @@ type SlideShareInfo struct {
 	InContest         bool   `xml:"InContest"`
 }
 
+type Link struct {
+	Full, Normal string
+}
+
 type SpeakerDeckInfo struct {
 	Title, Description, DownloadURL, FileName string
 }

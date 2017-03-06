@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jung-kurt/gofpdf"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
-	"github.com/jung-kurt/gofpdf"
 )
 
 type HandlerWithContext func(context.Context, http.ResponseWriter, *http.Request)
@@ -41,7 +41,7 @@ func MustParams(h HandlerWithReqData) HandlerWithContext {
 	return HandlerWithContext(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		data, err := json2ReqData(r.Body)
 		if err != nil || data.URL == "" {
-			log.Debugf(ctx, "Error json2ReqData : %v", err)
+			log.Infof(ctx, "Error json2ReqData : %v", err)
 			writeError(w, "Invalid request format!!", http.StatusBadRequest)
 			return
 		}
@@ -91,15 +91,20 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 	}
 
 	pdf := gofpdf.New("L", "mm", "A4", "")
-	defer pdf.Close()
-	for _, link := range links {
-		resp, err := httpClient.Get(link)
+	for i, link := range links {
+		imageLink := link.Normal
+		resp, err := httpClient.Get(imageLink)
 		if err != nil {
-			log.Errorf(ctx, "Error HTTP Get %s : %v", link, err)
+			log.Errorf(ctx, "Error HTTP Get %s idx = %d: %v", imageLink, i, err)
 			writeError(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 			return
 		}
-		addPage2PDF(pdf, link, resp)
+
+		if err := addPage2PDF(pdf, imageLink, resp); err != nil {
+			log.Errorf(ctx, "addPage2PDF error idx = %d: %v", i, err)
+			writeError(w, "PDF作成中にエラーが発生しました。", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
@@ -110,19 +115,21 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 	}
 }
 
-func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) {
+func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
 	defer resp.Body.Close()
-	const wd = 210
 	pdf.AddPage()
 	options := gofpdf.ImageOptions{
 		ReadDpi:   false,
 		ImageType: pdf.ImageTypeFromMime(resp.Header["Content-Type"][0]),
 	}
 	infoPtr := pdf.RegisterImageOptionsReader(link, options, resp.Body)
-	if pdf.Ok() {
-		imgWd, imgHt := infoPtr.Extent()
-		pdf.ImageOptions(link, (wd-imgWd)/2.0, pdf.GetY(), imgWd, imgHt, false, options, 0, "")
+	imgWd, imgHt := infoPtr.Extent()
+	pdf.ImageOptions(link, 35, 40, imgWd, imgHt, false, options, 0, "")
+
+	if pdf.Err() {
+		return pdf.Error()
 	}
+	return nil
 }
 
 func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data *ReqData) {

@@ -57,7 +57,7 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 	return ss, err
 }
 
-func (s *SlideShareSvc) GetSlideImageLinks(url string) ([]string, error) {
+func (s *SlideShareSvc) GetSlideImageLinks(url string) ([]Link, error) {
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -69,10 +69,15 @@ func (s *SlideShareSvc) GetSlideImageLinks(url string) ([]string, error) {
 		return nil, err
 	}
 
-	links := []string{}
+	links := []Link{}
 	doc.Find("div.slide_container > section > img.slide_image").Each(func(i int, s *goquery.Selection) {
-		link := s.AttrOr("data-normal", "")
-		links = append(links, strings.Split(link, "?")[0])
+		normal := strings.Split(s.AttrOr("data-normal", ""), "?")[0]
+		full := strings.Split(s.AttrOr("data-full", ""), "?")[0]
+		link := Link{
+			Normal: normal,
+			Full:   full,
+		}
+		links = append(links, link)
 	})
 
 	if len(links) == 0 {
