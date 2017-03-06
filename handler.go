@@ -75,8 +75,8 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 		return
 	}
 
-	usePDFCreator, _ := strconv.ParseBool(os.Getenv("USEPDFCREATOR"))
-	if !usePDFCreator {
+	createPDF, _ := strconv.ParseBool(os.Getenv("CREATEPDF"))
+	if !createPDF {
 		msg := "指定されたスライドはダウンロードが禁止されています。"
 		log.Infof(ctx, msg)
 		writeError(w, msg, http.StatusBadRequest)
