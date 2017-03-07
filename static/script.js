@@ -22,6 +22,7 @@ function onDownloadClicked() {
 function download(url, api) {
   $('.message-area').hide();
   $('.searching').show();
+  $('#download').addClass('disabled');
   var xhr = new XMLHttpRequest();
   xhr.open('POST', api, true);
   xhr.responseType = 'arraybuffer';
@@ -47,6 +48,7 @@ function onReadyStateChanged() {
     break;
   case 4:
     $('.downloading').hide();
+    $('#download').removeClass('disabled');
     if (this.status === 200) {
       onDownloadSuccess(this.response, this.getResponseHeader('X-FileName'));
     } else {
