@@ -132,7 +132,6 @@ func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error
 
 	details := doc.Find("#talk-details")
 	downloadURL := doc.Find("#share_pdf").AttrOr("href", "")
-	strings.Split(downloadURL, "/")
 
 	// compare with zero value.
 	if downloadURL == "" {
