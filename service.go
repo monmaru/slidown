@@ -15,11 +15,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SlideShareSvc ...
 type SlideShareSvc struct {
 	APIKey, SharedSecret string
 	httpClient           *http.Client
 }
 
+// NewSlideShareSvc ...
 func NewSlideShareSvc(apiKey, sharedSecret string, client *http.Client) *SlideShareSvc {
 	return &SlideShareSvc{
 		APIKey:       apiKey,
@@ -28,6 +30,7 @@ func NewSlideShareSvc(apiKey, sharedSecret string, client *http.Client) *SlideSh
 	}
 }
 
+// GetSlideShareInfo ...
 func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]string) (*SlideShareInfo, error) {
 	args := map[string]string{
 		"slideshow_url": url,
@@ -57,6 +60,7 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 	return ss, err
 }
 
+// GetSlideImageLinks ...
 func (s *SlideShareSvc) GetSlideImageLinks(url string) ([]Link, error) {
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
@@ -110,14 +114,17 @@ func parseXML(resp *http.Response, container interface{}) error {
 	return xml.Unmarshal([]byte(bytes), container)
 }
 
+// SpeakerDeckSvc ...
 type SpeakerDeckSvc struct {
 	httpClient *http.Client
 }
 
+// NewSpeakerDeckSvc ...
 func NewSpeakerDeckSvc(client *http.Client) *SpeakerDeckSvc {
 	return &SpeakerDeckSvc{httpClient: client}
 }
 
+// GetSpeakerDeckInfo ...
 func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error) {
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
@@ -142,11 +149,11 @@ func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error
 		Title:       details.Find("h1").Text(),
 		Description: strings.TrimSpace(details.Find(".description").Text()),
 		DownloadURL: downloadURL,
-		FileName:    extractFileName(downloadURL),
+		FileName:    s.extractFileName(downloadURL),
 	}, nil
 }
 
-func extractFileName(downloadURL string) string {
+func (s *SpeakerDeckSvc) extractFileName(downloadURL string) string {
 	tmp := strings.Split(downloadURL, "/")
 	return tmp[len(tmp)-1]
 }

@@ -8,8 +8,7 @@ import (
 
 func init() {
 	router := mux.NewRouter()
-	router.HandleFunc("/api/speakerdeck/download", HttpWithContext(MustParams(DownloadFromSpeakerDeck))).Methods("POST")
-	router.HandleFunc("/api/slideshare/download", HttpWithContext(MustParams(DownloadFromSlideShare))).Methods("POST")
+	router.HandleFunc("/api/speakerdeck/download", HTTPWithContext(MustParams(DownloadFromSpeakerDeck))).Methods("POST")
+	router.HandleFunc("/api/slideshare/download", HTTPWithContext(MustParams(DownloadFromSlideShare))).Methods("POST")
 	http.Handle("/", router)
 }
-

@@ -1,5 +1,6 @@
 package slidown
 
+// SlideShareInfo ...
 type SlideShareInfo struct {
 	ID                uint32 `xml:"ID"`
 	Title             string `xml:"Title"`
@@ -21,18 +22,22 @@ type SlideShareInfo struct {
 	InContest         bool   `xml:"InContest"`
 }
 
+// Link ...
 type Link struct {
 	Full, Normal string
 }
 
+// SpeakerDeckInfo ...
 type SpeakerDeckInfo struct {
 	Title, Description, DownloadURL, FileName string
 }
 
+// ReqData ...
 type ReqData struct {
 	URL string `json:"url"`
 }
 
+// ResError ...
 type ResError struct {
 	Message string `json:"message"`
 }
