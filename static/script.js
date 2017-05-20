@@ -83,7 +83,7 @@ function downloadFromLink(uri) {
   link.download = filename;
   link.href = uri;
   link.click();
-  showMessage('Now downloading');
+  showMessage('Now downloading ...');
 }
 
 function processJSON(ab, fn) {
