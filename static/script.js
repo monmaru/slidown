@@ -51,8 +51,10 @@ function onReadyStateChanged() {
     $('#download').removeClass('disabled');
     if (this.status === 200) {
       onDownloadSuccess(this.response, this.getResponseHeader('X-FileName'));
+    } else if (this.status === 201) {
+      processJSON(this.response, downloadFromLink);
     } else {
-      onDownloadError(this.response);
+      processJSON(this.response, showMessage);
     }
     break;
   }
@@ -74,12 +76,22 @@ function onDownloadSuccess(ab, fileName) {
   showMessage('Download completed');
 }
 
-function onDownloadError(ab) {
+function downloadFromLink(uri) {
+  var tmpArray = uri.split('/');
+  var filename = tmpArray[tmpArray.length-1];
+  var link = document.createElement('a');
+  link.download = filename;
+  link.href = uri;
+  link.click();
+  showMessage('Now downloading');
+}
+
+function processJSON(ab, fn) {
   if (window.TextDecoder) {
-    showMessage(buildErrorMsg(ab2str(ab)));
+    fn(buildErrorMsg(ab2str(ab)));
   } else {
     ab2strForIE(ab, function(str) {
-      showMessage(buildErrorMsg(str));
+      fn(buildErrorMsg(str));
     });
   }
 }

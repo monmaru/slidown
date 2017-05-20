@@ -37,7 +37,7 @@ type ReqData struct {
 	URL string `json:"url"`
 }
 
-// ResError ...
-type ResError struct {
+// ResMessage ...
+type ResMessage struct {
 	Message string `json:"message"`
 }

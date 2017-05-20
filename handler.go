@@ -9,23 +9,25 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/jung-kurt/gofpdf"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
 )
+
+const maxFileSize = 29360128 // 28MB
 
 // HandlerWithContext ...
 type HandlerWithContext func(context.Context, http.ResponseWriter, *http.Request)
 
 // HTTPWithContext ...
-func HTTPWithContext(h HandlerWithContext) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func HTTPWithContext(h HandlerWithContext) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ctx := NewContext(r)
 		defer timeTrack(ctx, time.Now(), r.RequestURI)
 		h(ctx, w, r)
-	})
+	}
 }
 
 // NewContext ...
@@ -47,7 +49,7 @@ func MustParams(h HandlerWithReqData) HandlerWithContext {
 		data, err := json2ReqData(r.Body)
 		if err != nil || data.URL == "" {
 			log.Infof(ctx, "Error json2ReqData : %v", err)
-			writeErrorResponse(w, "Invalid request format!!", http.StatusBadRequest)
+			writeMessageJSON(w, "Invalid request format!!", http.StatusBadRequest)
 			return
 		}
 		h(ctx, w, data)
@@ -56,7 +58,7 @@ func MustParams(h HandlerWithReqData) HandlerWithContext {
 
 // DownloadFromSlideShare ...
 func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *ReqData) {
-	httpClient := NewHTTPClient(ctx)
+	httpClient := DefaultHTTPClient(ctx)
 	svc := NewSlideShareSvc(
 		os.Getenv("APIKEY"),
 		os.Getenv("SHAREDSECRET"),
@@ -65,7 +67,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 	slide, err := svc.GetSlideShareInfo(data.URL)
 	if err != nil {
 		log.Infof(ctx, "GetSlideShareInfo error: %#v", err)
-		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
+		writeMessageJSON(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
 
@@ -74,10 +76,21 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 		resp, err := getWithTimeout(ctx, slide.DownloadURL)
 		if err != nil {
 			log.Errorf(ctx, "download error: %#v", err)
-			writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+			writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 			return
 		}
-		copyResponseAndClose(w, resp, fileName)
+
+		if resp.ContentLength > maxFileSize {
+			url, err := Upload2GCS(ctx, resp.Body, fileName)
+			if err != nil {
+				log.Errorf(ctx, "Upload2GCS error %v", err)
+				writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+				return
+			}
+			writeMessageJSON(w, url, http.StatusCreated)
+		} else {
+			copyResponseAndClose(ctx, w, resp, fileName)
+		}
 		return
 	}
 
@@ -85,14 +98,14 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 	if !createPDF {
 		msg := "指定されたスライドはダウンロードが禁止されています。"
 		log.Infof(ctx, msg)
-		writeErrorResponse(w, msg, http.StatusBadRequest)
+		writeMessageJSON(w, msg, http.StatusBadRequest)
 		return
 	}
 
 	links, err := svc.GetSlideImageLinks(data.URL)
 	if err != nil {
 		log.Errorf(ctx, "GetSlideImageLinks error: %#v", err)
-		writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+		writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 		return
 	}
 
@@ -102,13 +115,13 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *Re
 		resp, err := httpClient.Get(imageLink)
 		if err != nil {
 			log.Errorf(ctx, "Error HTTP Get %s idx = %d: %v", imageLink, i, err)
-			writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+			writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 			return
 		}
 
 		if err := addPage2PDF(pdf, imageLink, resp); err != nil {
 			log.Errorf(ctx, "addPage2PDF error idx = %d: %v", i, err)
-			writeErrorResponse(w, "PDF作成中にエラーが発生しました。", http.StatusInternalServerError)
+			writeMessageJSON(w, "PDF作成中にエラーが発生しました。", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -140,27 +153,32 @@ func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
 
 // DownloadFromSpeakerDeck ...
 func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data *ReqData) {
-	svc := NewSpeakerDeckSvc(NewHTTPClient(ctx))
+	svc := NewSpeakerDeckSvc(DefaultHTTPClient(ctx))
 	info, err := svc.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
 		log.Infof(ctx, "GetSpeakerDeckInfo error: %#v", err)
-		writeErrorResponse(w, "スライドが見つかりませんでした。", http.StatusNotFound)
+		writeMessageJSON(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
 
 	resp, err := getWithTimeout(ctx, info.DownloadURL)
 	if err != nil {
 		log.Errorf(ctx, "download error: %#v", err)
-		writeErrorResponse(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+		writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
 		return
 	}
 
-	copyResponseAndClose(w, resp, info.FileName)
-}
-
-// NewHTTPClient ...
-var NewHTTPClient func(ctx context.Context) *http.Client = func(ctx context.Context) *http.Client {
-	return urlfetch.Client(ctx)
+	if resp.ContentLength > maxFileSize {
+		url, err := Upload2GCS(ctx, resp.Body, info.FileName)
+		if err != nil {
+			log.Errorf(ctx, "Upload2GCS error %v", err)
+			writeMessageJSON(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
+			return
+		}
+		writeMessageJSON(w, url, http.StatusCreated)
+	} else {
+		copyResponseAndClose(ctx, w, resp, info.FileName)
+	}
 }
 
 func json2ReqData(rc io.ReadCloser) (*ReqData, error) {
@@ -173,19 +191,22 @@ func json2ReqData(rc io.ReadCloser) (*ReqData, error) {
 func getWithTimeout(ctx context.Context, url string) (resp *http.Response, err error) {
 	const timeout = 60 * time.Second
 	ctxWithTimeout, _ := context.WithTimeout(ctx, timeout)
-	return NewHTTPClient(ctxWithTimeout).Get(url)
+	return CustomHTTPClient(ctxWithTimeout).Get(url)
 }
 
-func writeErrorResponse(w http.ResponseWriter, message string, statusCode int) {
+func writeMessageJSON(w http.ResponseWriter, message string, statusCode int) {
 	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(ResError{Message: message})
+	_ = json.NewEncoder(w).Encode(ResMessage{Message: message})
 }
 
-func copyResponseAndClose(w http.ResponseWriter, resp *http.Response, fileName string) {
+func copyResponseAndClose(ctx context.Context, w http.ResponseWriter, resp *http.Response, fileName string) {
 	defer resp.Body.Close()
 	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-	w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
+	w.Header().Set("Content-Length", string(resp.ContentLength))
 	w.Header().Set("X-FileName", fileName)
-	io.Copy(w, resp.Body)
+
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		log.Errorf(ctx, "io.Copy error: %#v", err)
+	}
 }
