@@ -2,10 +2,8 @@ package slidown
 
 import (
 	"crypto/sha1"
-	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -47,10 +45,9 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	ss := &SlideShareInfo{}
-	err = parseXML(resp, ss)
+	err = decodeXML(resp.Body, ss)
 
 	// compare with zero value.
 	if ss.ID == 0 && ss.Title == "" {
@@ -104,14 +101,6 @@ func (s *SlideShareSvc) buildEndpoint(method string, args map[string]string) str
 	values.Set("hash", fmt.Sprintf("%x", hash.Sum(nil)))
 	baseURL := "https://www.slideshare.net/api/2"
 	return baseURL + "/" + method + "?" + values.Encode()
-}
-
-func parseXML(resp *http.Response, container interface{}) error {
-	bytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	return xml.Unmarshal([]byte(bytes), container)
 }
 
 // SpeakerDeckSvc ...

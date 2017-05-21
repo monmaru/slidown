@@ -182,11 +182,6 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data Re
 	}
 }
 
-func decodeJSON(rc io.ReadCloser, out interface{}) error {
-	defer rc.Close()
-	return json.NewDecoder(rc).Decode(out)
-}
-
 func getWithTimeout(ctx context.Context, url string) (resp *http.Response, err error) {
 	const timeout = 60 * time.Second
 	ctxWithTimeout, _ := context.WithTimeout(ctx, timeout)
