@@ -41,12 +41,13 @@ func timeTrack(ctx context.Context, start time.Time, name string) {
 }
 
 // HandlerWithReqData ...
-type HandlerWithReqData func(context.Context, http.ResponseWriter, *ReqData)
+type HandlerWithReqData func(context.Context, http.ResponseWriter, ReqData)
 
 // MustParams ...
 func MustParams(h HandlerWithReqData) HandlerWithContext {
 	return HandlerWithContext(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		data, err := json2ReqData(r.Body)
+		var data ReqData
+		err := decodeJSON(r.Body, &data)
 		if err != nil || data.URL == "" {
 			log.Infof(ctx, "Error json2ReqData : %v", err)
 			writeMessageJSON(w, "Invalid request format!!", http.StatusBadRequest)
@@ -57,7 +58,7 @@ func MustParams(h HandlerWithReqData) HandlerWithContext {
 }
 
 // DownloadFromSlideShare ...
-func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data *ReqData) {
+func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data ReqData) {
 	httpClient := DefaultHTTPClient(ctx)
 	svc := NewSlideShareSvc(
 		os.Getenv("APIKEY"),
@@ -152,7 +153,7 @@ func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
 }
 
 // DownloadFromSpeakerDeck ...
-func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data *ReqData) {
+func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data ReqData) {
 	svc := NewSpeakerDeckSvc(DefaultHTTPClient(ctx))
 	info, err := svc.GetSpeakerDeckInfo(data.URL)
 	if err != nil {
@@ -181,11 +182,9 @@ func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data *R
 	}
 }
 
-func json2ReqData(rc io.ReadCloser) (*ReqData, error) {
+func decodeJSON(rc io.ReadCloser, out interface{}) error {
 	defer rc.Close()
-	var data ReqData
-	err := json.NewDecoder(rc).Decode(&data)
-	return &data, err
+	return json.NewDecoder(rc).Decode(out)
 }
 
 func getWithTimeout(ctx context.Context, url string) (resp *http.Response, err error) {
