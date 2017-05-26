@@ -11,6 +11,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 // SlideShareSvc ...
@@ -29,7 +30,13 @@ func NewSlideShareSvc(apiKey, sharedSecret string, client *http.Client) *SlideSh
 }
 
 // GetSlideShareInfo ...
-func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]string) (*SlideShareInfo, error) {
+func (s *SlideShareSvc) GetSlideShareInfo(ctx context.Context, url string, optArgs ...map[string]string) (*SlideShareInfo, error) {
+	var cache SlideShareInfo
+	key := "SS-" + tailURL(url)
+	if err := GetCache(ctx, key, &cache); err == nil {
+		return &cache, nil
+	}
+
 	args := map[string]string{
 		"slideshow_url": url,
 	}
@@ -54,6 +61,7 @@ func (s *SlideShareSvc) GetSlideShareInfo(url string, optArgs ...map[string]stri
 		return nil, errors.New("指定されたURLからはスライドが見つかりませんでした。")
 	}
 
+	SetCache(ctx, key, ss)
 	return ss, err
 }
 
@@ -114,7 +122,13 @@ func NewSpeakerDeckSvc(client *http.Client) *SpeakerDeckSvc {
 }
 
 // GetSpeakerDeckInfo ...
-func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error) {
+func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(ctx context.Context, url string) (*SpeakerDeckInfo, error) {
+	var cache SpeakerDeckInfo
+	key := "SD-" + tailURL(url)
+	if err := GetCache(ctx, key, &cache); err == nil {
+		return &cache, nil
+	}
+
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -134,15 +148,13 @@ func (s *SpeakerDeckSvc) GetSpeakerDeckInfo(url string) (*SpeakerDeckInfo, error
 		return nil, errors.New("指定されたURLからはスライドが見つかりませんでした。")
 	}
 
-	return &SpeakerDeckInfo{
+	info := &SpeakerDeckInfo{
 		Title:       details.Find("h1").Text(),
 		Description: strings.TrimSpace(details.Find(".description").Text()),
 		DownloadURL: downloadURL,
-		FileName:    s.extractFileName(downloadURL),
-	}, nil
-}
+		FileName:    tailURL(downloadURL),
+	}
 
-func (s *SpeakerDeckSvc) extractFileName(downloadURL string) string {
-	tmp := strings.Split(downloadURL, "/")
-	return tmp[len(tmp)-1]
+	SetCache(ctx, key, info)
+	return info, nil
 }

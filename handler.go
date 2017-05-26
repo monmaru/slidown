@@ -65,7 +65,7 @@ func DownloadFromSlideShare(ctx context.Context, w http.ResponseWriter, data Req
 		os.Getenv("SHAREDSECRET"),
 		httpClient)
 
-	slide, err := svc.GetSlideShareInfo(data.URL)
+	slide, err := svc.GetSlideShareInfo(ctx, data.URL)
 	if err != nil {
 		log.Infof(ctx, "GetSlideShareInfo error: %#v", err)
 		writeMessageJSON(w, "スライドが見つかりませんでした。", http.StatusNotFound)
@@ -155,7 +155,7 @@ func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
 // DownloadFromSpeakerDeck ...
 func DownloadFromSpeakerDeck(ctx context.Context, w http.ResponseWriter, data ReqData) {
 	svc := NewSpeakerDeckSvc(DefaultHTTPClient(ctx))
-	info, err := svc.GetSpeakerDeckInfo(data.URL)
+	info, err := svc.GetSpeakerDeckInfo(ctx, data.URL)
 	if err != nil {
 		log.Infof(ctx, "GetSpeakerDeckInfo error: %#v", err)
 		writeMessageJSON(w, "スライドが見つかりませんでした。", http.StatusNotFound)
