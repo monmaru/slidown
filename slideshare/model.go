@@ -1,7 +1,6 @@
-package slidown
+package slideshare
 
-// SlideShareInfo ...
-type SlideShareInfo struct {
+type Slide struct {
 	ID                uint32 `xml:"ID"`
 	Title             string `xml:"Title"`
 	Description       string `xml:"Description"`
@@ -22,22 +21,6 @@ type SlideShareInfo struct {
 	InContest         bool   `xml:"InContest"`
 }
 
-// Link ...
-type Link struct {
+type link struct {
 	Full, Normal string
-}
-
-// SpeakerDeckInfo ...
-type SpeakerDeckInfo struct {
-	Title, Description, DownloadURL, FileName string
-}
-
-// ReqData ...
-type ReqData struct {
-	URL string `json:"url"`
-}
-
-// ResMessage ...
-type ResMessage struct {
-	Message string `json:"message"`
 }

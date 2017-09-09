@@ -1,4 +1,4 @@
-package slidown
+package common
 
 import (
 	"fmt"
