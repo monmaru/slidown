@@ -1,17 +1,18 @@
 'use strict';
+var slidown = {}
 
-$(function() {
-  $('#download').on('click', onDownloadClicked);
-});
+slidown.init = function() {
+  $('#download').on('click', slidown.onDownloadClicked);
+}
 
-function onDownloadClicked() {
+slidown.onDownloadClicked = function() {
   var url = $('#url').val();
   switch (true) {
   case /(http|https):\/\/www\.slideshare\.net\/.+/.test(url):
-    download(url, '/api/slideshare/download');
+    slidown.download(url, '/api/slideshare/download');
     break;
   case /(http|https):\/\/speakerdeck\.com\/.+/.test(url):
-    download(url, '/api/speakerdeck/download');
+    slidown.download(url, '/api/speakerdeck/download');
     break;
   default:
     Materialize.toast('SlideShareかSpeakerDeckのURLを入力してください！！', 5000);
@@ -19,7 +20,7 @@ function onDownloadClicked() {
   }
 }
 
-function download(url, api) {
+slidown.download = function (url, api) {
   $('.message-area').hide();
   $('.searching').show();
   $('#download').addClass('disabled');
@@ -27,40 +28,40 @@ function download(url, api) {
   xhr.open('POST', api, true);
   xhr.responseType = 'arraybuffer';
   xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.addEventListener('progress', updateProgress, false);
-  xhr.onreadystatechange = onReadyStateChanged;
+  xhr.addEventListener('progress', slidown.updateProgress, false);
+  xhr.onreadystatechange = slidown.onReadyStateChanged;
   xhr.send(JSON.stringify({'url': url}));
 }
 
-function updateProgress(evt) {
+slidown.updateProgress = function (evt) {
   if (evt.lengthComputable) {
     var percentage = evt.loaded / evt.total * 100;
     $('.determinate').css('width', percentage + '%');
   }
 }
 
-function onReadyStateChanged() {
+slidown.onReadyStateChanged = function () {
   switch (this.readyState) {
   case 2: // received response header.
     $('.searching').hide();
-    $('#downloading-message').text('Downloading ' + bytes2str(this.getResponseHeader('Content-Length')) + '...');
+    $('#downloading-message').text('Downloading ' + slidown.bytes2str(this.getResponseHeader('Content-Length')) + '...');
     $('.downloading').show();
     break;
   case 4:
     $('.downloading').hide();
     $('#download').removeClass('disabled');
     if (this.status === 200) {
-      onDownloadSuccess(this.response, this.getResponseHeader('X-FileName'));
+      slidown.onDownloadSuccess(this.response, this.getResponseHeader('X-FileName'));
     } else if (this.status === 201) {
-      processJSON(this.response, downloadFromLink);
+      slidown.processJSON(this.response, slidown.downloadFromLink);
     } else {
-      processJSON(this.response, showMessage);
+      slidown.processJSON(this.response, slidown.showMessage);
     }
     break;
   }
 }
 
-function onDownloadSuccess(ab, fileName) {
+slidown.onDownloadSuccess = function (ab, fileName) {
   var blob = new Blob([ab], {type: 'application/octet-binary'});
   if (window.navigator.msSaveBlob) {
     window.navigator.msSaveBlob(blob, fileName);
@@ -73,30 +74,30 @@ function onDownloadSuccess(ab, fileName) {
     link.click();
     document.body.removeChild(link);
   }
-  showMessage('Download completed');
+  slidown.showMessage('Download completed');
 }
 
-function downloadFromLink(uri) {
+slidown.downloadFromLink = function (uri) {
   var tmpArray = uri.split('/');
   var filename = tmpArray[tmpArray.length-1];
   var link = document.createElement('a');
   link.download = filename;
   link.href = uri;
   link.click();
-  showMessage('Download completed');
+  slidown.showMessage('Download completed');
 }
 
-function processJSON(ab, fn) {
+slidown.processJSON = function (ab, fn) {
   if (window.TextDecoder) {
-    fn(buildErrorMsg(ab2str(ab)));
+    fn(slidown.buildErrorMsg(ab2str(ab)));
   } else {
-    ab2strForIE(ab, function(str) {
-      fn(buildErrorMsg(str));
+    slidown.ab2strForIE(ab, function (str) {
+      fn(slidown.buildErrorMsg(str));
     });
   }
 }
 
-function buildErrorMsg(str) {
+slidown.buildErrorMsg = function (str) {
   try {
     return JSON.parse(str).message;
   } catch(e) {
@@ -105,12 +106,12 @@ function buildErrorMsg(str) {
   }
 }
 
-function showMessage(msg) {
+slidown.showMessage = function (msg) {
   $('#result-message').text(msg);
   $('.message-area').show();
 }
 
-function bytes2str(bytes) {
+slidown.bytes2str = function (bytes) {
   var baseSize = 1024;
   if (bytes < baseSize) {
     return bytes + ' bytes';
@@ -121,14 +122,16 @@ function bytes2str(bytes) {
   }
 }
 
-function ab2str(buf) {
+slidown.ab2str = function (buf) {
   var decoder = new TextDecoder('utf-8');
   return decoder.decode(new Uint8Array(buf));
 }
 
-function ab2strForIE(buf, callback) {
+slidown.ab2strForIE = function (buf, callback) {
   var blob = new Blob([buf], {type:'text/plain'});
   var reader = new FileReader();
-  reader.onload = function(evt){callback(evt.target.result);};
+  reader.onload = function (evt) {
+    callback(evt.target.result);
+  };
   reader.readAsText(blob, 'utf-8');
 }
