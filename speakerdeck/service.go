@@ -1,12 +1,12 @@
 package speakerdeck
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/monmaru/slidown/common"
-	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -36,8 +36,12 @@ func (s *service) fetch(ctx context.Context, url string) (*Slide, error) {
 		return nil, err
 	}
 
-	details := doc.Find("#talk-details")
-	downloadURL := doc.Find("#share_pdf").AttrOr("href", "")
+	downloadURL := ""
+	doc.Find("div.sd-main div.deck div.deck-meta a").Each(func(i int, s *goquery.Selection) {
+		if strings.Contains(s.AttrOr("title", ""), "Download PDF") {
+			downloadURL = s.AttrOr("href", "")
+		}
+	})
 
 	// compare with zero value.
 	if downloadURL == "" {
@@ -45,8 +49,7 @@ func (s *service) fetch(ctx context.Context, url string) (*Slide, error) {
 	}
 
 	slide := &Slide{
-		Title:       details.Find("h1").Text(),
-		Description: strings.TrimSpace(details.Find(".description").Text()),
+		Title:       doc.Find("h1.mb-4").Text(),
 		DownloadURL: downloadURL,
 		FileName:    common.TailURL(downloadURL),
 	}

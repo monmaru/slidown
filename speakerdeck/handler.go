@@ -17,6 +17,7 @@ func DownloadHandler(ctx context.Context, w http.ResponseWriter, data common.Req
 		common.WriteMessage(w, "スライドが見つかりませんでした。", http.StatusNotFound)
 		return
 	}
+	log.Debugf(ctx, "slide: %+v", slide)
 
 	resp, err := common.GetWithTimeout(ctx, slide.DownloadURL)
 	if err != nil {

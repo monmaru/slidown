@@ -27,6 +27,7 @@ func DownloadHandler(ctx context.Context, w http.ResponseWriter, data common.Req
 		return
 	}
 
+	log.Debugf(ctx, "slide: %+v", slide)
 	fileName := fmt.Sprint(slide.ID) + "." + slide.Format
 	if slide.Download {
 		resp, err := common.GetWithTimeout(ctx, slide.DownloadURL)
