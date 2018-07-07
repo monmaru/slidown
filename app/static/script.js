@@ -2,6 +2,7 @@
 var slidown = {}
 
 slidown.init = function() {
+  M.AutoInit();
   $('#download').on('click', slidown.onDownloadClicked);
 }
 
@@ -15,7 +16,7 @@ slidown.onDownloadClicked = function() {
     slidown.download(url, '/api/speakerdeck/download');
     break;
   default:
-    Materialize.toast('SlideShareかSpeakerDeckのURLを入力してください！！', 5000);
+    M.toast({html: 'SlideShareかSpeakerDeckのURLを入力してください！！'});
     break;
   }
 }
