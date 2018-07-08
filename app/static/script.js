@@ -90,7 +90,7 @@ slidown.downloadFromLink = function (uri) {
 
 slidown.processJSON = function (ab, fn) {
   if (window.TextDecoder) {
-    fn(slidown.buildErrorMsg(ab2str(ab)));
+    fn(slidown.buildErrorMsg(slidown.ab2str(ab)));
   } else {
     slidown.ab2strForIE(ab, function (str) {
       fn(slidown.buildErrorMsg(str));
