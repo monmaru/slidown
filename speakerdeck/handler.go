@@ -2,6 +2,7 @@ package speakerdeck
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/monmaru/slidown/common"
 	"golang.org/x/net/context"
@@ -11,7 +12,8 @@ import (
 // DownloadHandler ...
 func DownloadHandler(ctx context.Context, w http.ResponseWriter, data common.ReqData) {
 	s := newService(common.DefaultHTTPClient(ctx))
-	slide, err := s.fetch(ctx, data.URL)
+
+	slide, err := s.fetch(ctx, strings.Split(data.URL, "?")[0])
 	if err != nil {
 		log.Infof(ctx, "fetch error: %#v", err)
 		common.WriteMessage(w, "スライドが見つかりませんでした。", http.StatusNotFound)
