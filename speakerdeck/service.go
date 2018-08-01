@@ -1,13 +1,13 @@
 package speakerdeck
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/monmaru/slidown/common"
-	"golang.org/x/net/context"
 )
 
 type service struct {

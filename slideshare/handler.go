@@ -1,6 +1,7 @@
 package slideshare
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/jung-kurt/gofpdf"
 	"github.com/monmaru/slidown/common"
-	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 )
 

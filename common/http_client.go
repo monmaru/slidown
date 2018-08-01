@@ -1,11 +1,11 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 
-	"golang.org/x/net/context"
 	"google.golang.org/appengine/socket"
 	"google.golang.org/appengine/urlfetch"
 )

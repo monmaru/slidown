@@ -1,11 +1,11 @@
 package speakerdeck
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/monmaru/slidown/common"
-	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 )
 

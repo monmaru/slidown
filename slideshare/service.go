@@ -1,6 +1,7 @@
 package slideshare
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/monmaru/slidown/common"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type service struct {

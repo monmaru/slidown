@@ -1,12 +1,12 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 
 	"cloud.google.com/go/storage"
-	"golang.org/x/net/context"
 )
 
 var bucketName string

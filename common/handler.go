@@ -1,13 +1,13 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
