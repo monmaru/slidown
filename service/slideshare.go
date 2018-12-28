@@ -35,13 +35,13 @@ type SlideShareSlide struct {
 	InContest         bool   `xml:"InContest"`
 }
 
-type link struct {
+type Link struct {
 	Full, Normal string
 }
 
 type SlideShareService interface {
 	Fetch(ctx context.Context, url string, optArgs ...map[string]string) (*SlideShareSlide, error)
-	FetchImageLinks(url string) ([]link, error)
+	FetchImageLinks(url string) ([]Link, error)
 }
 
 type SlideShareServiceImpl struct {
@@ -85,7 +85,7 @@ func (s *SlideShareServiceImpl) Fetch(ctx context.Context, url string, optArgs .
 	return slide, err
 }
 
-func (s *SlideShareServiceImpl) FetchImageLinks(url string) ([]link, error) {
+func (s *SlideShareServiceImpl) FetchImageLinks(url string) ([]Link, error) {
 	resp, err := s.httpClient.Get(url)
 	if err != nil {
 		return nil, err
@@ -97,11 +97,11 @@ func (s *SlideShareServiceImpl) FetchImageLinks(url string) ([]link, error) {
 		return nil, err
 	}
 
-	links := []link{}
+	links := []Link{}
 	doc.Find("div.slide_container > section > img.slide_image").Each(func(i int, s *goquery.Selection) {
 		normal := strings.Split(s.AttrOr("data-normal", ""), "?")[0]
 		full := strings.Split(s.AttrOr("data-full", ""), "?")[0]
-		link := link{
+		link := Link{
 			Normal: normal,
 			Full:   full,
 		}

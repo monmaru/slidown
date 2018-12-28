@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/monmaru/slidown/library/log"
 	"github.com/monmaru/slidown/model"
-	"google.golang.org/appengine/log"
 )
 
 const maxFileSize = 29360128 // 28MB
 
-func parse(r *http.Request) (*model.Request, error) {
+func parseFrom(r *http.Request) (*model.Request, error) {
 	var req model.Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, err
@@ -21,13 +21,12 @@ func parse(r *http.Request) (*model.Request, error) {
 	return &req, nil
 }
 
-func getWithTimeout(ctx context.Context, url string) (resp *http.Response, err error) {
+func httpGetWithTimeout(ctx context.Context, url string, timeout time.Duration) (resp *http.Response, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	const timeout = 60 * time.Second
 	ctxWithTimeout, _ := context.WithTimeout(ctx, timeout)
 	req = req.WithContext(ctxWithTimeout)
 	return http.DefaultClient.Do(req)
