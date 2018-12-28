@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"github.com/monmaru/slidown/service"
 )
 
-func HandleSpeakerDeck(speakerdeck service.SpeakerDeckService, storage service.Storage) http.Handler {
+func SpeakerDeck(speakerdeck service.SpeakerDeckService, storage service.Storage) http.Handler {
 	return &SpeakerDeckHandler{
 		speakerdeck: speakerdeck,
 		storage:     storage,

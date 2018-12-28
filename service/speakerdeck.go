@@ -17,8 +17,7 @@ type SpeakerDeckSlide struct {
 	Title, Description, DownloadURL, FileName string
 }
 
-type SpeakerDeckServiceImpl struct {
-}
+type SpeakerDeckServiceImpl struct{}
 
 func NewSpeakerDeckService() SpeakerDeckService {
 	return &SpeakerDeckServiceImpl{}

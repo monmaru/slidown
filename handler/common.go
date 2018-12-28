@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -27,7 +27,8 @@ func httpGetWithTimeout(ctx context.Context, url string, timeout time.Duration) 
 		return nil, err
 	}
 
-	ctxWithTimeout, _ := context.WithTimeout(ctx, timeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	req = req.WithContext(ctxWithTimeout)
 	return http.DefaultClient.Do(req)
 }

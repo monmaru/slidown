@@ -10,7 +10,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
 	"github.com/go-chi/chi"
-	"github.com/monmaru/slidown/api"
+	"github.com/monmaru/slidown/handler"
 	mylog "github.com/monmaru/slidown/library/log"
 	"github.com/monmaru/slidown/service"
 	"go.opencensus.io/plugin/ochttp"
@@ -83,8 +83,8 @@ func route(
 	})
 
 	router.Route("/api", func(r chi.Router) {
-		r.Method("POST", "/speakerdeck/download", api.HandleSpeakerDeck(speakerdeck, storage))
-		r.Method("POST", "/slideshare/download", api.HandleSlideShare(slideshare, storage))
+		r.Method("POST", "/speakerdeck/download", handler.SpeakerDeck(speakerdeck, storage))
+		r.Method("POST", "/slideshare/download", handler.SlideShare(slideshare, storage))
 	})
 	return router
 }

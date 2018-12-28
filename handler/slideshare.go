@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/monmaru/slidown/service"
 )
 
-func HandleSlideShare(slideshare service.SlideShareService, storage service.Storage) http.Handler {
+func SlideShare(slideshare service.SlideShareService, storage service.Storage) http.Handler {
 	return &SlideShareHandler{
 		slideshare: slideshare,
 		storage:    storage,
@@ -39,7 +39,7 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Debugf(ctx, "slide: %+v", slide)
-	fileName := fmt.Sprint(slide.ID) + "." + slide.Format
+	fileName := fmt.Sprintf("%d.%s", slide.ID, slide.Format)
 	if slide.Download {
 		resp, err := httpGetWithTimeout(ctx, slide.DownloadURL, 60*time.Second)
 		if err != nil {
