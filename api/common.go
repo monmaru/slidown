@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/monmaru/slidown/library/log"
 	"github.com/monmaru/slidown/model"
-	"google.golang.org/appengine/log"
 )
 
 const maxFileSize = 29360128 // 28MB
