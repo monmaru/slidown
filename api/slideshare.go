@@ -63,7 +63,7 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	links, err := h.slideshare.FetchImageLinks(req.URL)
+	links, err := h.slideshare.FetchImageLinks(ctx, req.URL)
 	if err != nil {
 		log.Errorf(ctx, "GetSlideImageLinks error: %#v", err)
 		writeMessage(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)

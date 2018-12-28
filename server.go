@@ -31,12 +31,11 @@ func main() {
 	}
 	defer mylog.Close()
 
-	speakerdeck := service.NewSpeakerDeckService(http.DefaultClient)
+	speakerdeck := service.NewSpeakerDeckService()
 
 	slideshare := service.NewSlideShareService(
 		os.Getenv("APIKEY"),
-		os.Getenv("SHAREDSECRET"),
-		http.DefaultClient)
+		os.Getenv("SHAREDSECRET"))
 	storage := service.NewStorage(os.Getenv("BUCKETNAME"))
 
 	router := route(slideshare, speakerdeck, storage)
@@ -63,7 +62,7 @@ func main() {
 func route(
 	slideshare service.SlideShareService,
 	speakerdeck service.SpeakerDeckService,
-	storage service.Storage) *chi.Mux {
+	storage service.Storage) http.Handler {
 
 	router := chi.NewRouter()
 

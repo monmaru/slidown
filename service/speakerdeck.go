@@ -18,15 +18,19 @@ type SpeakerDeckSlide struct {
 }
 
 type SpeakerDeckServiceImpl struct {
-	httpClient *http.Client
 }
 
-func NewSpeakerDeckService(client *http.Client) SpeakerDeckService {
-	return &SpeakerDeckServiceImpl{httpClient: client}
+func NewSpeakerDeckService() SpeakerDeckService {
+	return &SpeakerDeckServiceImpl{}
 }
 
 func (s *SpeakerDeckServiceImpl) Fetch(ctx context.Context, url string) (*SpeakerDeckSlide, error) {
-	resp, err := s.httpClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}

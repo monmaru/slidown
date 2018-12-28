@@ -41,19 +41,17 @@ type Link struct {
 
 type SlideShareService interface {
 	Fetch(ctx context.Context, url string, optArgs ...map[string]string) (*SlideShareSlide, error)
-	FetchImageLinks(url string) ([]Link, error)
+	FetchImageLinks(ctx context.Context, url string) ([]Link, error)
 }
 
 type SlideShareServiceImpl struct {
 	APIKey, SharedSecret string
-	httpClient           *http.Client
 }
 
-func NewSlideShareService(apiKey, sharedSecret string, client *http.Client) SlideShareService {
+func NewSlideShareService(apiKey, sharedSecret string) SlideShareService {
 	return &SlideShareServiceImpl{
 		APIKey:       apiKey,
 		SharedSecret: sharedSecret,
-		httpClient:   client,
 	}
 }
 
@@ -69,7 +67,12 @@ func (s *SlideShareServiceImpl) Fetch(ctx context.Context, url string, optArgs .
 	}
 
 	endpoint := s.buildEndpoint("get_slideshow", args)
-	resp, err := s.httpClient.Get(endpoint)
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +88,13 @@ func (s *SlideShareServiceImpl) Fetch(ctx context.Context, url string, optArgs .
 	return slide, err
 }
 
-func (s *SlideShareServiceImpl) FetchImageLinks(url string) ([]Link, error) {
-	resp, err := s.httpClient.Get(url)
+func (s *SlideShareServiceImpl) FetchImageLinks(ctx context.Context, url string) ([]Link, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
