@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -134,6 +135,11 @@ func (s *SlideShareServiceImpl) buildEndpoint(method string, args map[string]str
 	hash := sha1.New()
 	io.WriteString(hash, s.SharedSecret+timestamp)
 	values.Set("hash", fmt.Sprintf("%x", hash.Sum(nil)))
-	baseURL := "https://www.slideshare.net/api/2"
-	return baseURL + "/" + method + "?" + values.Encode()
+
+	return fmt.Sprintf("https://www.slideshare.net/api/2/%s?%s", method, values.Encode())
+}
+
+func decodeXML(rc io.ReadCloser, out interface{}) error {
+	defer rc.Close()
+	return xml.NewDecoder(rc).Decode(out)
 }

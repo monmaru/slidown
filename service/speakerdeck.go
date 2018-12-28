@@ -61,3 +61,8 @@ func (s *SpeakerDeckServiceImpl) Fetch(ctx context.Context, url string) (*Speake
 
 	return slide, nil
 }
+
+func tailURL(url string) string {
+	tmp := strings.Split(url, "/")
+	return tmp[len(tmp)-1]
+}
