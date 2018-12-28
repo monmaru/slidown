@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/monmaru/slidown/library/log"
 	"github.com/monmaru/slidown/service"
@@ -22,7 +23,7 @@ type SpeakerDeckHandler struct {
 
 func (h *SpeakerDeckHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	req, err := parse(r)
+	req, err := parseFrom(r)
 	if err != nil {
 		log.Infof(ctx, "failed to parse request : %v", err)
 		writeMessage(w, "Invalid request format!!", http.StatusBadRequest)
@@ -36,7 +37,7 @@ func (h *SpeakerDeckHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Debugf(ctx, "slide: %+v", slide)
 
-	resp, err := getWithTimeout(ctx, slide.DownloadURL)
+	resp, err := httpGetWithTimeout(ctx, slide.DownloadURL, 60*time.Second)
 	if err != nil {
 		log.Errorf(ctx, "download error: %#v", err)
 		writeMessage(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)

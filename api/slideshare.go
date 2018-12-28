@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jung-kurt/gofpdf"
 	"github.com/monmaru/slidown/library/log"
@@ -23,7 +25,7 @@ type SlideShareHandler struct {
 
 func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	req, err := parse(r)
+	req, err := parseFrom(r)
 	if err != nil {
 		log.Errorf(ctx, "failed to parse request : %v", err)
 		writeMessage(w, "Invalid request format!!", http.StatusBadRequest)
@@ -39,7 +41,7 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debugf(ctx, "slide: %+v", slide)
 	fileName := fmt.Sprint(slide.ID) + "." + slide.Format
 	if slide.Download {
-		resp, err := getWithTimeout(ctx, slide.DownloadURL)
+		resp, err := httpGetWithTimeout(ctx, slide.DownloadURL, 60*time.Second)
 		if err != nil {
 			log.Errorf(ctx, "download error: %#v", err)
 			writeMessage(w, "ダウンロード中にエラーが発生しました。", http.StatusInternalServerError)
@@ -68,6 +70,15 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Debugf(ctx, "start write pdf")
+	pdf := &pdfWriter{}
+	pdf.write(ctx, w, links, fileName)
+	log.Debugf(ctx, "finished write pdf")
+}
+
+type pdfWriter struct{}
+
+func (p *pdfWriter) write(ctx context.Context, w http.ResponseWriter, links []service.Link, fileName string) {
 	pdf := gofpdf.New("L", "mm", "A4", "")
 	for i, link := range links {
 		imageLink := link.Normal
@@ -78,7 +89,7 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := addPage2PDF(pdf, imageLink, resp); err != nil {
+		if err := p.addPage(pdf, imageLink, resp); err != nil {
 			log.Errorf(ctx, "addPage2PDF error idx = %d: %v", i, err)
 			writeMessage(w, "PDF作成中にエラーが発生しました。", http.StatusInternalServerError)
 			return
@@ -93,7 +104,7 @@ func (h *SlideShareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addPage2PDF(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
+func (p *pdfWriter) addPage(pdf *gofpdf.Fpdf, link string, resp *http.Response) error {
 	defer resp.Body.Close()
 	pdf.AddPage()
 	options := gofpdf.ImageOptions{
