@@ -1,27 +1,27 @@
-runtime: go111
+runtime: go112
 
 basic_scaling:
   max_instances: 5
   idle_timeout: 5m
 
 handlers:
-- url: /api/.*
-  script: auto
-  secure: always
+  - url: /api/.*
+    script: auto
+    secure: always
 
-- url: /_ah/.*
-  script: auto
+  - url: /_ah/.*
+    script: auto
 
-- url: /favicon.ico
-  static_files: static/favicon.ico
-  upload: static/favicon.ico
+  - url: /favicon.ico
+    static_files: static/favicon.ico
+    upload: static/favicon.ico
 
-- url: /
-  static_files: static/index.html
-  upload: static/index.html
+  - url: /
+    static_files: static/index.html
+    upload: static/index.html
 
-- url: /
-  static_dir: static
+  - url: /
+    static_dir: static
 
 includes:
-- secret.yaml
+  - secret.yaml
